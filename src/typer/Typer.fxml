@@ -5,14 +5,15 @@
 <?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import typer.*?>
 
 <BorderPane id="borderPane" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml/1" fx:controller="typer.TyperController">
     <top>
         <Label text="future menu"/>
     </top>
     <center>
-        <StackPane fx:id="stackPane">
-        </StackPane>
+        <Pane fx:id="pane">
+        </Pane>
     </center>
     <bottom>
         <TextField fx:id="mytext" /> 

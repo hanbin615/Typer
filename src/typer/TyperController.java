@@ -8,13 +8,11 @@ package typer;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.Pane;
 
 /**
  *
@@ -22,21 +20,30 @@ import javafx.scene.layout.StackPane;
  */
 public class TyperController implements Initializable {
     
-//    @FXML private BorderPane borderPane;
-    @FXML public StackPane stackPane;
+//    static public TyperController singleinstance;
+    
+    @FXML public Pane pane;
     @FXML public TextField mytext;
     
-    private ChangeListener<Boolean> focusLossListener = (observable, wasFocused, isFocused) -> {
-        if (!isFocused) 
-            mytext.requestFocus();
-    };
     
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
+//        singleinstance = this;
+        
+        // mytext always focused
+        ChangeListener<Boolean> focusLossListener = (observable, wasFocused, isFocused) -> {
+            if (!isFocused) 
+                mytext.requestFocus();
+        };
         mytext.focusedProperty().addListener(focusLossListener);
+        
+        // mytext always uppercase
+        mytext.textProperty().addListener((ov, oldValue, newValue) -> {mytext.setText(newValue.toUpperCase()); });
+        
+        // start
+        Sequence sequence = new Sequence(pane, mytext.textProperty());
+        sequence.start();
         mytext.requestFocus();
-        mytext.textProperty().addListener((ov, oldValue, newValue) -> {mytext.setText(newValue.toUpperCase()); });    
     }
     
 }

@@ -5,96 +5,75 @@
  */
 package typer;
 
-import java.util.Date;
-import javafx.animation.KeyFrame;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.animation.FadeTransition;
+import javafx.animation.TranslateTransition;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
+import javafx.scene.media.AudioClip;
 import javafx.util.Duration;
 
 /**
  *
  * @author happy
  */
-public class Tile extends Button{
+public class Tile extends Button implements ChangeListener<String>{
     
-    public static SimpleStringProperty typed;
-    private double moveY, moveX;    
-    private String content;
-    private KeyFrame keyframe;
-    
-    private ChangeListener<String> listener = (ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-        if (newValue.toUpperCase().contains(content.toUpperCase())){
+    static private final AudioClip bar8Note = new AudioClip(Tile.class.getResource("Note8.wav").toString());
+    public SimpleBooleanProperty stopProperty = new SimpleBooleanProperty(false);
+    public StringProperty text;
+
+
+    @Override
+    public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        if (newValue.toUpperCase().contains(this.getText().toUpperCase())){
             stop();
-            typed.set("");
+            text.removeListener(this);
+            text.set("");
+            
         }
+    }
+    
+    private TranslateTransition leftTransition;
+    private FadeTransition fadeTransition;
+    public EventHandler onHit = e ->{
+        stop();
     };
     
-    public Tile(String content, int x, int y){
-        this(content);
-        this.setLayoutX(x);
-        this.setLayoutY(y);
-    }
-    
-    public Tile(String content){
+    public long delay;
+    public Tile(String content, StringProperty text, long delay){
         super(content);
-        this.content = content;
-        moveX = 0;
-        moveY = 3;
-        typed.addListener( listener);
+        this.text = text;
+        this.delay = delay;
     }
     
-    private long countdown;
-    
-    public void move(){
-        this.setLayoutX(Math.round(this.getLayoutX()+moveX));
-        this.setLayoutY(Math.round(this.getLayoutY()+moveY));
+    public Tile(String content, StringProperty text){
+        this(content, text, 0);
     }
     
-    /*
-    
-    */
-    public void setDirection(double direction){
-        setDirection(direction, 1);
-    }
-    
-    public void setDirection(double direction, double magnitude){
-        moveX = Math.cos(direction)*magnitude;
-        moveY = Math.sin(direction)*magnitude;
-    }
-    
-    @Override
-    public String toString(){
-        return "tile [" + content + "] is at x=" +this.getLayoutX() + ", y=" +this.getLayoutY()  ;
-    }
-    
-    public EventHandler<ActionEvent> handle = e -> this.setLayoutY(this.getLayoutY()+2);
-    public KeyFrame setKeyFrame(){
-        keyframe = new KeyFrame(Duration.millis(50),handle);
-        return keyframe;
-    }
-    
-    public KeyFrame setKeyFrame(long millis){
-        long endtime = new Date().getTime() + millis;
-        EventHandler<ActionEvent> waithandle = e -> {
-            if (endtime < new Date().getTime())
-                this.setLayoutY(this.getLayoutY()+2);
-        };
-        keyframe = new KeyFrame(Duration.millis(50),waithandle);
-        return keyframe;
+    public void run(){
+        leftTransition = new TranslateTransition(Duration.seconds(5), this);
+        leftTransition.setToX(-1 * this.getLayoutX());
+        leftTransition.setCycleCount(1);
+        leftTransition.setDelay(Duration.millis(delay));
+        leftTransition.play();
+        
+        fadeTransition = new FadeTransition(Duration.seconds(1), this);
+        fadeTransition.setToValue(0);
+        fadeTransition.setCycleCount(1);
+        
+        text.addListener(this);
+        
     }
     
     public void stop(){
-        // remove listener
-        typed.removeListener(listener);
-        
-        // TODO stop moving
-        
-        // closing animation
-        //TODO improve
-        this.visibleProperty().set(false);
+        leftTransition.stop();
+        bar8Note.play();
+        fadeTransition.play();
+        stopProperty.set(true);
+        this.disableProperty().set(true);
     }
 }
