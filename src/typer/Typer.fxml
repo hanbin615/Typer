@@ -9,7 +9,9 @@
 
 <BorderPane id="borderPane" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml/1" fx:controller="typer.TyperController">
     <top>
-        <Label text="future menu"/>
+        <HBox>
+            <Button text="random" onAction="#handleButtonRandom" />
+        </HBox>
     </top>
     <center>
         <Pane fx:id="pane">
