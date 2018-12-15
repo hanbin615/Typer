@@ -5,17 +5,18 @@
  */
 package typer;
 
-import java.util.Objects;
+import java.util.ArrayList;
 import javafx.animation.FadeTransition;
 import javafx.animation.Transition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
 import javafx.scene.media.AudioClip;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
@@ -24,18 +25,43 @@ import javafx.util.Duration;
  *
  * @author happy
  */
-public class Tile extends Button{
+public class Tile extends Pane{
     
     static private final AudioClip bar8Note = new AudioClip(Tile.class.getResource("Note8.wav").toString());
+    static private void playSound(){ bar8Note.play();}
     static private StringProperty textProperty;
-    static public void setTextField(StringProperty textfield){ textProperty = textfield;}
+    static private ArrayList<Tile> list = new ArrayList();
+    
+  //  private Boolean active = false;
+    static public void setTextField(StringProperty textfield){ 
+        textProperty = textfield;
+        textProperty.addListener((observable, oldvalue, newvalue)->{
+            int index = 0;
+            while (index < list.size()){
+                Tile tile = list.get(index);
+//                if(!tile.active) {
+//                    index++;
+//                    continue;
+//                }
+                if (newvalue.toUpperCase().contains(tile.answer.toUpperCase())){
+                    tile.onHitEvent.handle(null);
+                    list.remove(index); // ALT set to inactive
+//                    tile.active = false;
+                    textProperty.set("");
+                    return;
+                } else {
+                    index++;
+                }
+            }
+        });
+    }
 //    public EventHandler<ActionEvent> onFinished;
     private EventHandler<ActionEvent> start;
     private Transition transition;
     private FadeTransition fadeTransition;
     private String answer;
     
-    static private Tile lastTile;
+    static public Tile lastTile;
     static public Tile firstTile;
     
     /**
@@ -44,28 +70,29 @@ public class Tile extends Button{
     public void followLastTile(){
         //TODO
         if(lastTile != null) {
-            fadeTransition.setOnFinished(e->{lastTile.play();});
+            fadeTransition.setOnFinished(e->{
+                Platform.runLater(()->lastTile.play());
+            });
+            System.out.println(this +" is following " +lastTile);
         } else {
             firstTile = this;
+            System.out.println("firstTile: " +firstTile);
         }
         lastTile = this;
+        System.out.println("lastTile: " +lastTile);
     }
     
-    private BooleanProperty activeProperty = new SimpleBooleanProperty(false);
+    @Override
+    public String toString(){
+        return "Tile '" +this.answer +"'";
+    }
     
     private final EventHandler onHitEvent = e ->{
-        activeProperty.set(false);
-        textProperty.set("");
-        
         transition.stop();
         playSound();
         fadeTransition.play();
         // TODO add onfinished?
     };
-    
-    static public void playSound(){
-        bar8Note.play();
-    }
     
     public Tile(String content){
         this(content, content);
@@ -74,52 +101,34 @@ public class Tile extends Button{
     private final BooleanProperty hit = new SimpleBooleanProperty(false);
     
     public Tile(String content, String answer){
-        super(content);
+        super();
+        Label label = new Label(content);
+        label.setFont(new Font(60));
+        getChildren().add(label);
+        
         this.answer = answer;
-        
-        ChangeListener<String> listenKeyboard = (observable, oldValue, newValue) -> {
-            if (newValue.toUpperCase().contains(answer.toUpperCase())){
-                onHitEvent.handle(null);
-            }
-        };
-
-        
-        activeProperty.addListener((observable, oldvalue, newvalue)->{
-            if (!Objects.equals(newvalue, oldvalue)){
-                if(newvalue){
-                    textProperty.addListener(listenKeyboard);
-                    this.visibleProperty().set(true);
-                    this.disableProperty().set(false);
-                } else {
-                    textProperty.removeListener(listenKeyboard);
-                    this.visibleProperty().set(false);
-                    this.disableProperty().set(true);
-                }
-            }
-        });
-        activeProperty.set(false);
-        
-        hit.addListener((observable, oldvalue, newvalue)->{
-            if (!Objects.equals(newvalue, oldvalue)){
-                if(newvalue){
-                    onHitEvent.handle(null);
-                }
-            }
-        });
-        
+        boolean add = list.add(this);
+                
         // set default move transition
         TranslateTransition moveTransition = new TranslateTransition(Duration.seconds(5),this);
         moveTransition.setToY(600);
         moveTransition.setCycleCount(1);
-        
         transition = moveTransition;
         
         // set default fade transition
         fadeTransition = new FadeTransition(Duration.seconds(1), this);
         fadeTransition.setToValue(0);
         fadeTransition.setCycleCount(1);
-
-        this.setFont(new Font(80));
+    }
+    
+    public void play(){
+//        activeProperty.set(true);
+//        active = true;
+        transition.play();
+    }
+    
+    public void setMoveTransition(TranslateTransition transition){
+        this.transition = transition;
     }
     
     static private String alfabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -156,19 +165,41 @@ public class Tile extends Button{
         }
     }
     
+    static public double getY(String letter){
+        switch(letter){
+            case "Q": return 100;
+            case "W": return 100;
+            case "E": return 100;
+            case "R": return 100;
+            case "T": return 100;
+            case "Y": return 100;
+            case "U": return 100;
+            case "I": return 100;
+            case "O": return 100;
+            case "P": return 100;
+            case "A": return 200;
+            case "S": return 200;
+            case "D": return 200;
+            case "F": return 200;
+            case "G": return 200;
+            case "H": return 200;
+            case "J": return 200;
+            case "K": return 200;
+            case "L": return 200;
+            case "Z": return 300;
+            case "X": return 300;
+            case "C": return 300;
+            case "V": return 300;
+            case "B": return 300;
+            case "N": return 300;
+            case "M": return 300;
+            default : return 0;
+        }
+    }
+    
     static public String getRandomLetter(){
         int index = (int) (Math.random() * 26);
         return alfabet.substring(index, index+1);
-    }
-    
-    public void play(){
-        activeProperty.set(true);
-        transition.play();
-    }
-    
-    
-    public void setMoveTransition(TranslateTransition transition){
-        this.transition = transition;
     }
     
 }
