@@ -32,21 +32,21 @@ public class Tile extends Pane{
     static private StringProperty textProperty;
     static private ArrayList<Tile> list = new ArrayList();
     
-  //  private Boolean active = false;
+    private Boolean active = false;
     static public void setTextField(StringProperty textfield){ 
         textProperty = textfield;
         textProperty.addListener((observable, oldvalue, newvalue)->{
             int index = 0;
             while (index < list.size()){
                 Tile tile = list.get(index);
-//                if(!tile.active) {
-//                    index++;
-//                    continue;
-//                }
+                if(!tile.active) {
+                    index++;
+                    continue;
+                }
                 if (newvalue.toUpperCase().contains(tile.answer.toUpperCase())){
                     tile.onHitEvent.handle(null);
                     list.remove(index); // ALT set to inactive
-//                    tile.active = false;
+                    tile.active = false;
                     textProperty.set("");
                     return;
                 } else {
@@ -67,19 +67,18 @@ public class Tile extends Pane{
     /**
      * follow first and last tile if exist
      */
-    public void followLastTile(){
+    static public void followLastTile(Tile tile){
         //TODO
         if(lastTile != null) {
-            fadeTransition.setOnFinished(e->{
-                Platform.runLater(()->lastTile.play());
-            });
-            System.out.println(this +" is following " +lastTile);
+            lastTile.fadeTransition.setOnFinished(e-> tile.play());
+//            tile.fadeTransition.setOnFinished(e->lastTile.play());
+//            System.out.println(this +" is following " +lastTile);
         } else {
-            firstTile = this;
-            System.out.println("firstTile: " +firstTile);
+            firstTile = tile;
+//            System.out.println("firstTile: " +firstTile);
         }
-        lastTile = this;
-        System.out.println("lastTile: " +lastTile);
+        lastTile = tile;
+//        System.out.println("lastTile: " +lastTile);
     }
     
     @Override
@@ -98,12 +97,17 @@ public class Tile extends Pane{
         this(content, content);
     }
     
+    private TileData tiledata;
+    public Tile(TileData tiledata){
+        this.tiledata = tiledata;
+    }
+    
     private final BooleanProperty hit = new SimpleBooleanProperty(false);
     
     public Tile(String content, String answer){
         super();
         Label label = new Label(content);
-        label.setFont(new Font(60));
+        label.setFont(new Font(72));
         getChildren().add(label);
         
         this.answer = answer;
@@ -119,11 +123,14 @@ public class Tile extends Pane{
         fadeTransition = new FadeTransition(Duration.seconds(1), this);
         fadeTransition.setToValue(0);
         fadeTransition.setCycleCount(1);
+        
+        this.setVisible(false);
     }
     
     public void play(){
+        setVisible(true);
 //        activeProperty.set(true);
-//        active = true;
+        active = true;
         transition.play();
     }
     

@@ -7,10 +7,11 @@
 <?import javafx.scene.layout.*?>
 <?import typer.*?>
 
-<BorderPane id="borderPane" prefHeight="600" prefWidth="800" xmlns:fx="http://javafx.com/fxml/1" fx:controller="typer.TyperController">
+<BorderPane id="borderPane" prefHeight="900" prefWidth="1200" xmlns:fx="http://javafx.com/fxml/1" fx:controller="typer.TyperController">
     <top>
         <HBox>
-            <Button text="random" onAction="#handleButtonRandom" />
+            <Button text="Interval" onAction="#handleButtonInterval" />
+            <Button text="Sequential" onAction="#handleButtonSequential" />
         </HBox>
     </top>
     <center>
