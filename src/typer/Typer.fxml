@@ -10,8 +10,9 @@
 <BorderPane id="borderPane" prefHeight="900" prefWidth="1200" xmlns:fx="http://javafx.com/fxml/1" fx:controller="typer.TyperController">
     <top>
         <HBox>
-            <Button text="Interval" onAction="#handleButtonInterval" />
-            <Button text="Sequential" onAction="#handleButtonSequential" />
+            <Button text="load" onAction="#handleButtonLoad" />
+            <Button text="default" onAction="#handleButtonDefault" />
+            <Button text="random letters" onAction="#handleButtonRandom" />
         </HBox>
     </top>
     <center>

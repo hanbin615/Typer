@@ -17,16 +17,48 @@ public class TileData {
     private boolean changed = false;
     
     public TileData(String line){
-        String[] content = line.split(",");
-        switch(content.length){
-            default: System.out.println("Tiledata Error: too much content: " +line);
-            case 5: this.miss = Integer.getInteger(content[4]);
-            case 4: this.hit = Integer.getInteger(content[3]);
-            case 3: this.appeared = Integer.getInteger(content[2]);
-            case 2: this.answer = content[1];
-            case 1: this.content = content[0]; break;
-            case 0: System.out.println("Tiledata Error: no content"); break;
+        String[] data = line.split(",");
+        
+        if(data.length >= 1){
+            content = data[0];
+        } else {
+            content = " ";
         }
+        
+        if (data.length >= 2){
+            answer = data[1];
+        } else {
+            answer = content;
+        }
+        
+        if (data.length >= 3) {
+            appeared = Integer.getInteger(data[2]);
+        } else {
+            appeared = 0;
+        }
+        
+        if (data.length >= 4){
+            hit = Integer.getInteger(data[3]);
+        } else {
+            hit = 0;
+        }
+        
+        if (data.length >= 5) miss = Integer.getInteger(data[4]);
+        else miss = 0;
+
+            
+        if (data.length >= 6){
+            System.out.println(content +"'s excess data will be ignored");
+        }
+        
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public String getAnswer() {
+        return answer;
     }
     
     @Override

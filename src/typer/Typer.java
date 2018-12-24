@@ -19,12 +19,17 @@ public class Typer extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("Typer.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("Typer.fxml"));
+	Parent root = (Parent) loader.load();
         
         Scene scene = new Scene(root);
         
         stage.setScene(scene);
         stage.show();
+        
+        TyperController controller = (TyperController) loader.getController();
+        stage.setOnCloseRequest(e -> controller.getFactory().close());
+//        stage.setOnHiding(e -> System.out.println("calling on hiding"));
     }
 
     /**
@@ -32,6 +37,11 @@ public class Typer extends Application {
      */
     public static void main(String[] args) {
         launch(args);
+    }
+    
+    @Override
+    public void stop(){
+        System.out.println("calling stop function");
     }
     
 }

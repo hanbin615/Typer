@@ -5,19 +5,16 @@
  */
 package typer;
 
+import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
-import javafx.animation.PauseTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
-import javafx.util.Duration;
+import javafx.stage.FileChooser;
 
 /**
  *
@@ -25,66 +22,58 @@ import javafx.util.Duration;
  */
 public class TyperController implements Initializable {
     
-//    static public TyperController singleinstance;
-    
     @FXML public Pane pane;
     @FXML public TextField mytext;
-    private int interval = 4;
-    public Tile getRandomLetterTile(){
-        String letter = Tile.getRandomLetter();
-        Tile tile = new Tile(letter);
-        tile.setLayoutX(Tile.getX(letter));
-
-        TranslateTransition move = new TranslateTransition(Duration.seconds(interval),tile);
-        move.setCycleCount(1);
-        move.setToY(pane.getHeight()-120);
-        tile.setMoveTransition(move);
-
-        pane.getChildren().add(tile);
-//        tile.visibleProperty().set(true);
-//        tile.visibleProperty().set(false);
-        return tile;
-    }
+    private TileFactory factory;
 
     @FXML
-    private void handleButtonInterval(ActionEvent event) {
-        int number = 100;
-        SequentialTransition  seq= new SequentialTransition();
-        for(int i = 0; i <number ; i++){
-            PauseTransition pause = new PauseTransition();
-            pause.setDuration(Duration.seconds(interval));
-            pause.setOnFinished((e)->{getRandomLetterTile().play();});
-            seq.getChildren().add(pause);
+    private void handleButtonDefault(ActionEvent event) {
+        File file = new File("./samples/letters.txt");
+        if (!file.exists()){
+            System.err.println("file " +file.getAbsolutePath() +" doesn't exist");
+            return;
         }
-        seq.playFrom(Duration.seconds(interval -1));
-//            Tile.firstTile.play();
-    }
-
-    @FXML
-    private void handleButtonSequential(ActionEvent event) {
-        int number = 100;
-        for(int i = 0; i <number ; i++){
-            Tile tile = getRandomLetterTile();
-            Tile.followLastTile(tile);
-        }
-        Tile.firstTile.play();
-    }
-
-    @Override
-    public void initialize(URL url, ResourceBundle rb) {
         
+        factory = new TileFactoryFromFile(pane, file);
+        factory.sendTile();
+    }
+
+    @FXML
+    private void handleButtonLoad(ActionEvent event) {
+        FileChooser filechooser = new FileChooser();
+        filechooser.setTitle("choose tile list");
+        filechooser.setInitialDirectory(new File("./samples/"));
+        File file = filechooser.showOpenDialog(pane.getScene().getWindow());
+        if (file == null) return;
+        
+        factory = new TileFactoryFromFile(pane, file);
+        factory.sendTile();
+    }
+    
+    @FXML
+    private void handleButtonRandom(ActionEvent event) {
+        factory = new TileFactoryRandomLetter(pane);
+        factory.sendTile();
+    }
+    
+@Override
+    public void initialize(URL url, ResourceBundle rb) {
         Platform.runLater(()->{
-            Tile.setTextField(mytext.textProperty());
+            mytext.textProperty().addListener((observable, oldvalue, newvalue)->{
+                if (factory.check(newvalue))
+                    mytext.setText("");
+            });
             
             // mytext always focused
             mytext.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
                 if (!isFocused) 
                     mytext.requestFocus();
             });
-            
-//            mytext.textProperty().addListener((ov, oldValue, newValue) -> {mytext.setText(newValue.toUpperCase()); });// mytext always uppercase
             mytext.requestFocus();
         });
     }
     
+    public TileFactory getFactory(){
+        return factory;
+    }
 }

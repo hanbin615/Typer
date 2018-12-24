@@ -5,60 +5,48 @@
  */
 package typer;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import javafx.scene.layout.Pane;
 
 /**
  *
  * @author happy
  */
-public class TileFactory {
-    private final Pane pane;
-    private final File file;
-    private final ArrayList<TileData> sequence = new ArrayList();
-    private int index = 0;
+public abstract class TileFactory {
+    protected Pane pane;
+    protected final ArrayList<TileData> sequence = new ArrayList();
+    protected int index = 0;
     
-    public TileFactory(Pane pane, File file){
-        this.pane = pane;
-        this.file = file;
-        load(file);
-    }
-    
-    public void nextTile(){
-        Tile tile = new Tile(sequence.get(index++));
+    abstract public Tile getTile(int index);
+
+    public void sendTile(){
+        Tile tile = getTile(index++);
+        activeTiles.add(tile);
+        tile.setFactory(this);
         pane.getChildren().add(tile);
-        tile.onFinished(e-> nextTile());
         tile.play();
+    };
+    
+    protected ArrayList<Tile> activeTiles = new ArrayList();
+    
+    public boolean check(String typed){
+        boolean found = false;
+        int countdown = activeTiles.size()-1;
+        while (countdown >= 0){
+            Tile tile = activeTiles.get(countdown);
+            if(tile.match(typed)){
+                found = true;
+                activeTiles.remove(countdown);
+            }
+            countdown--;
+        }
+        return found;
+    }
+
+    public void shuffle(){
+        Collections.shuffle(sequence);
     }
     
-    public final void load(File file){
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),"UTF-8"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sequence.add(new TileData(line));
-            }
-        } catch(Exception e) {
-            System.out.println("failed to load file " +file.getAbsolutePath());
-        }
-    }
-    
-    private final boolean append = false;
-    public void save(){
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, append), "UTF-8"))) {
-            for(TileData tiledata: sequence){
-                writer.write(tiledata.save() +System.lineSeparator());
-            }
-            writer.flush();
-            //Close writer
-        } catch(Exception e){
-            System.out.println("failed to save to file " +file.getAbsolutePath());
-        }
-    }
+    public void close(){}
 }
